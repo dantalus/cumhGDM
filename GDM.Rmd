@@ -1,0 +1,654 @@
+---
+title: "GDM"
+author: ""
+date: "Wednesday, August 05, 2015"
+output: html_document
+---
+
+
+```{r, echo = FALSE, include = FALSE}
+  
+  load("C:/Users/ddahly/Dropbox/smallProjects/cumhDietetics/data.rda")
+  load("C:/Users/ddahly/Dropbox/smallProjects/cumhDietetics/map.rda")
+
+
+	library(tidyr)
+	library(plyr)
+	library(dplyr)
+	library(ggplot2)
+	library(RColorBrewer)
+	library(readxl)
+	library(gmodels)
+	library(magrittr)
+	library(xtable)
+	library(rworldmap)
+
+```
+
+The data are on 406 women with singleton pregnancies. 
+
+##GDM diagnosis##
+
+GA at time of GTT
+
+```{r, echo = FALSE, warning = FALSE}
+
+  ggplot(data, aes(x = GAatGTT)) +
+  	geom_bar(fill = brewer.pal(3, "Set1")[1]) +
+  	ggtitle(paste("Gestational age when GTT was given (n = ",
+  								nrow(data[!is.na(data$GAatGTT), ]),
+  								")", sep = "")) +
+  	ylab("Number of patients") +
+  	xlab("Gestational age (weeks)")
+
+
+```
+
+GTT location
+
+```{r, echo = FALSE, warning = FALSE}
+
+  table(data$GTTLocation, dnn = "Location of GTT")
+
+```
+
+Distribution of fasting glucose (mmol)
+
+```{r, echo = FALSE, warning = FALSE}
+# GMD diagnosis ################################################################
+
+# fasting of 5.1 or greater or  2 hour value of 8.5mmol or above.
+
+  summary(data$Fasting)
+
+```
+  
+Distribution of 2-hour glucose (mmol)
+
+```{r, echo = FALSE, warning = FALSE}
+# GMD diagnosis ################################################################
+
+# fasting of 5.1 or greater or  2 hour value of 8.5mmol or above.
+
+  summary(data$TwoHRPP)
+```
+
+Distribution of 1-hour glucose (mmol)
+
+```{r, echo = FALSE, warning = FALSE}
+# GMD diagnosis ################################################################
+
+# fasting of 5.1 or greater or  2 hour value of 8.5mmol or above.
+
+  summary(data$OneHRPP)
+```
+
+This is a plot of fasting and 2-hour gluose values, for women with both measures. 
+The blue markers are women with 1-hour glucose >= 10 mmol. There are a few
+women who don't seem to meet any of these criteria. 
+
+```{r, echo = FALSE, warning = FALSE}
+
+  ggplot(data, aes(x = Fasting, y = TwoHRPP)) +
+  	geom_point(alpha = 0.7, size = 4, color = brewer.pal(3, "Set1")[1]) +
+  	geom_point(data = filter(data, OneHRPP >= 10), size = 4,
+  						 color = brewer.pal(3, "Set1")[2]) +
+  	geom_hline(yintercept = 8.5) +
+  	geom_vline(xintercept = 5.1) +
+  	ggtitle(paste("Fasting and 2-hour blood glucose (n = ",
+  								nrow(data[!is.na(data$Fasting) & !is.na(data$TwoHRPP), ]),
+  								")", sep = "")) +
+  	xlab("Fasting (mmol)") +
+  	ylab("2-hour (mmol)")
+```
+
+Who are the women that don't meet the fasting or 2-hour gluose criteria?
+
+```{r, echo = FALSE, warning = FALSE}
+
+  filter(data[, c(1, 56:59)], TwoHRPP < 8.5 & Fasting < 5.1)
+
+```
+
+Distribution of HBA1c
+
+```{r, echo = FALSE, warning = FALSE}
+  summary(data$HBA1catdiagnosis)
+
+  ggplot(data, aes(x = HBA1catdiagnosis)) +
+  	geom_bar(fill = brewer.pal(3, "Set1")[1]) +
+  	ggtitle(paste("HBA1c (n = ",
+  								nrow(data[!is.na(data$HBA1c), ]),
+  								")", sep = "")) +
+  	ylab("Number of patients") +
+  	xlab("HBA1c")
+
+```
+
+
+##Management##
+
+
+Insulin Dose at end 
+
+```{r, echo = FALSE, warning = FALSE}
+
+ table(data$DietOnly, dnn = "Diet only")
+
+```
+
+
+```{r, echo = FALSE, warning = FALSE}
+
+ table(data$ReferraltoEndocrinology, dnn = "Referral to Endocrinology")
+
+
+```
+
+
+```{r, echo = FALSE, warning = FALSE}
+
+ table(data$Metformin, dnn = "Metformin")
+
+```
+
+
+```{r, echo = FALSE, warning = FALSE}
+
+ table(data$BasalInsulin, dnn = "Basal Insulin")
+
+
+```
+
+
+```{r, echo = FALSE, warning = FALSE}
+
+ table(data$PrandialInsulin, dnn = "Prandial Insulin")
+
+
+```
+
+Compare all of these. 
+
+Metformin vs Insulin
+
+```{r, echo = FALSE, warning = FALSE}
+
+ table(data$PrandialInsulin, data$Metformin, 
+ 			dnn = c("Prandial Insulin", "Metformin"))
+ 			
+ table(data$BasalInsulin, data$Metformin, 
+ 			dnn = c("Basal Insulin", "Metformin"))
+ 			
+ table(data$PrandialInsulin, data$BasalInsulin, 
+ 			dnn = c("Prandial Insulin", "Basal Insulin")) 			
+
+```
+
+
+Diet vs metformin/insulin
+
+```{r, echo = FALSE, warning = FALSE}
+
+ table(data$DietOnly, data$Metformin, 
+ 			dnn = c("Diet", "Metformin"))
+ 			
+ table(data$DietOnly, data$PrandialInsulin, 
+ 			dnn = c("Diet", "Prandial Insulin"))
+ 			
+ table(data$DietOnly, data$BasalInsulin, 
+ 			dnn = c("Diet", "Basal Insulin")) 			
+
+```
+
+
+
+
+Insulin dose at the end: total sample, in those with Basal Insulin, and in those with Prandial Insulin. 
+
+```{r, echo = FALSE, warning = FALSE}
+
+  summary(data$InsulinDoseatend)
+
+  summary(data[data$BasalInsulin == "Yes", ]$InsulinDoseatend)
+
+	ggplot(data[data$BasalInsulin == "Yes", ], aes(x = InsulinDoseatend)) +
+		geom_bar(fill = brewer.pal(3, "Set1")[1]) +
+		ggtitle(paste("HBA1c (n = ",
+									nrow(data[data$BasalInsulin == "Yes" & 
+															!is.na(data$InsulinDoseatend), ]),
+									")", sep = "")) +
+		ylab("Number of patients") +
+		xlab("Insulin dose")
+
+
+  summary(data[data$PrandialInsulin == "Yes", ]$InsulinDoseatend)
+
+	ggplot(data[data$PrandialInsulin == "Yes", ], aes(x = InsulinDoseatend)) +
+		geom_bar(fill = brewer.pal(3, "Set1")[1]) +
+		ggtitle(paste("HBA1c (n = ",
+									nrow(data[data$PrandialInsulin == "Yes" & 
+															!is.na(data$InsulinDoseatend), ]),
+									")", sep = "")) +
+		ylab("Number of patients") +
+		xlab("Insulin dose")
+
+
+```
+
+
+
+
+
+
+
+
+##GDM screening/risk factors##
+
+Previous history of GDM. This is based on the variable PHxGDM. Women with parity
+0 are labelled firstborn. 
+
+```{r, echo = FALSE, warning = FALSE}
+
+  table(data$prevGDM,	dnn = c("Previous history of GMD")) 
+
+```
+
+Other factors for screening that we have data on are:
+
+* Family history of diabetes in a first degree relative
+* Body mass index ≥30kg/m2
+* Maternal age ≥ 40years
+* Previous unexplained perinatal death
+* Current glycosuria
+* Women on long term steroids
+* Previous delivery of a baby weighing ≥4.5kg
+* Polycystic Ovary Syndrome
+* Polyhydramnios and/or macrosomia in existing pregnancy
+* Ethnicity associated with a high prevalence of diabetes
+
+
+###Family history of diabetes in a first degree relative###
+
+```{r, echo = FALSE, warning = FALSE}
+
+	table(data$FHxT2DM, data$FHxT1DM,
+  			dnn = c("FHx Type II Diabetes", "FHx Type I Diabetes")) 
+
+  table(data$anyFHxDm, dnn = "Any family history of diabetes")
+
+```
+
+###Heights and weights (used to calculate BMI)###
+
+There were a few data entry errors that have been corrected. Here is a plot of
+the heights and weights. 
+
+```{r, echo = FALSE, warning = FALSE}
+
+	ggplot(data, aes(x = Height, y = Weight)) +
+		geom_jitter(alpha = 0.7, size = 4, color = brewer.pal(3, "Set1")[1]) +
+  	ggtitle(paste("Heights and weights (n = ",
+  								nrow(data[!is.na(data$Height) & !is.na(data$Weight), ]),
+                  ")", sep = "")) +
+  	xlab("Height (m)") +
+  	ylab("Weight (kg)")
+
+```
+
+###BMI###
+
+Based on the corrected heights and weights, I calculated a new BMI variable. It
+does not match up perfectly with the BMI values in the dataset. Here is a plot
+to illustrate this. 
+
+```{r, echo = FALSE, warning = FALSE}
+
+ ggplot(data, aes(x = BMI, y = BMInew)) +
+  	geom_jitter(alpha = 0.7, size = 4, color = brewer.pal(3, "Set1")[1]) +
+  	ggtitle(paste("Original and new BMI values (n = ",
+  								nrow(data[!is.na(data$BMI) & !is.na(data$BMInew), ]),
+  								")", sep = "")) +
+  	xlab("Original BMI value (kg/m2)") +
+  	ylab("New BMI value (kg/m2)")
+
+```
+
+Some of the differences are large. 
+
+```{r, echo = FALSE, warning = FALSE}
+
+ ggplot(data, aes(x = bmiDifference)) +
+  	geom_bar(binwidth = 0.1, fill = brewer.pal(3, "Set1")[1]) +
+  	xlab("Difference between BMI values")
+
+
+```
+
+Because of these differences, I have also created a new body size classification variable. Here is how it matches up with the original version in the dataset. 
+
+```{r, echo = FALSE, warning = FALSE}
+
+	table(data$BMIclass, data$BMIclassNew,
+  			dnn = c("Original BMI", "Newly calculated BMI"))
+
+```
+
+###Maternal age###
+
+```{r, echo = FALSE, warning = FALSE}
+  
+	summary(data$Age)
+
+  ggplot(data, aes(x = Age)) +
+  	geom_bar(fill = brewer.pal(3, "Set1")[1]) +
+  	ggtitle(paste("Maternal Ages (n = ",
+  								nrow(data[!is.na(data$Age), ]),
+  								")", sep = "")) +
+  	ylab("Number of patients") +
+  	xlab("Age (years)")
+
+  table(data$fourty, dnn = "Maternal age >= 40 years")
+
+```
+
+###Weight of the previous baby###
+
+I created a new variable which reflected a macrosomic previous baby if the variable LargeBaby indicated so, or if the variable Weightofbiggestbaby was >= 4500g. Women with a parity of zero are labelled as firstborn. 
+
+Here is a plot of the weights of the biggest previous babies. 
+
+```{r, echo = FALSE, warning = FALSE}
+
+ 	ggplot(data, aes(x = Weightofbiggestbaby)) +
+		geom_bar(fill = brewer.pal(3, "Set1")[1]) +
+		ggtitle(paste("Birth weight of largest previous baby (n = ",
+									nrow(data[!is.na(data$Weightofbiggestbaby), ]),
+	                ")", sep = "")) +
+		ylab("Number of patients") +
+		xlab("Birth weight (g)")
+ 
+
+```
+
+A table of LargeBaby and Parity
+
+```{r, echo = FALSE, warning = FALSE}
+
+ table(data$LargeBaby, data$Parity, dnn = c("Large baby", "Parity")) 
+
+
+```
+
+The new variable - not much difference. 
+
+```{r, echo = FALSE, warning = FALSE}
+
+  table(data$bigBaby, dnn = "Previous macrocomic birth")
+
+```
+
+Here is the distribution of Weightofbiggestbaby by LargeBaby
+
+```{r, echo = FALSE, warning = FALSE}
+
+   data[ , !duplicated(colnames(data))] %>%
+  	group_by(as.factor(LargeBaby)) %>%
+  	summarise(n    = n(),
+  		        mean = mean(Weightofbiggestbaby, na.rm = TRUE),
+  						min =  min(Weightofbiggestbaby,  na.rm = TRUE),
+  						max =  max(Weightofbiggestbaby,  na.rm = TRUE))
+
+```
+
+
+###PCOS###
+
+```{r, echo = FALSE, warning = FALSE}
+ 
+  table(data$PHxPCOS, dnn = "History of PCOS")
+
+```
+
+
+###Polyhydraminos###
+
+```{r, echo = FALSE, warning = FALSE}
+
+  table(data$polyhydraminos, dnn = "Polyhydraminos")
+
+```
+
+
+###Curent Macro###
+Any AC reading >= 90th centile for GA
+
+```{r, echo = FALSE, warning = FALSE}
+
+ table(data$suspectMacro, dnn = "Suspected macrosomia")
+
+```
+
+###Ethicity###
+
+Based on black ethnicity, or country of origin being in Africa (expect South Africa), or on the list in the screening guidelines.
+
+```{r, echo = FALSE, warning = FALSE}
+
+  table(data$ethnicRisk, dnn = "Risky ethnicity")
+
+```
+
+
+
+##Socio/Demographics/Health##
+
+###County and distance to CUMH###
+
+```{r, echo = FALSE, warning = FALSE}
+
+	table(data$County, dnn = "County of residence")
+
+  ggplot(data, aes(x = County, fill = County)) +
+  	geom_bar() +
+  	scale_fill_brewer("", palette = "Set1", guide = FALSE) +
+  	ggtitle(paste("County of residence (n = ",
+  								nrow(data[!is.na(data$County), ]), ")", sep = "")) +
+  	xlab("County") +
+  	ylab("Number of participants")
+
+# Distance ####
+
+  summary(data$Distance)
+
+  ggplot(data, aes(x = DistancefromCUMHKm)) +
+  	geom_bar(fill = brewer.pal(3, "Set1")[1]) +
+  	ggtitle(paste("Distance from CUMH (n = ",
+  								nrow(data[!is.na(data$DistancefromCUMHKm), ]),
+  								")", sep = "")) +
+  	xlab("Distance (km)") +
+  	ylab("Number of participants")
+
+```
+
+###Ethnicity###
+
+```{r, echo = FALSE, warning = FALSE}
+
+  table(data$RacialCategory, dnn = "Ethnicity")
+  
+  ggplot(data, aes(x = RacialCategory, fill = RacialCategory)) +
+  	geom_bar() +
+  	scale_fill_brewer("", palette = "Set1", guide = FALSE) +
+  	ggtitle(paste("Ethnicity (n = ",
+  								nrow(data[!is.na(data$RacialCategory), ]), ")", sep = "")) +
+  	xlab("Ethnicity") +
+  	ylab("Number of participants")
+
+  table(data$white, data$RacialCategory, 
+  			dnn = c("Ethnicity(2)", "Ethnicity(5)"))
+  
+```
+
+###Nationality###
+
+```{r, echo = FALSE, warning = FALSE}
+
+
+  table(data$Nationality, dnn = "Nationality")  
+
+  table(data$CountryofOrigin, dnn = "Country of Origin")
+
+  mapColor <- c("#E0A1AC", "#E0A1AC", "#E0A1AC", "#E0A1AC", "#E0A1AC",
+  							"#E24444", "#E31C17")
+
+  mapCountryData(map, nameColumnToPlot= "MaxCount", catMethod = "categorical",
+  							 colourPalette = mapColor, mapTitle = "", addLegend = F,
+  							 missingCountryCol = "#bdbdbd")
+
+```
+
+```{r, echo = FALSE, warning = FALSE}
+
+ table(data$OccupationClassification, dnn = "Social Class (mothers)")
+
+```
+
+
+```{r, echo = FALSE, warning = FALSE}
+
+ table(data$OccupationClassification.1, dnn = "Social Class (partner)")
+
+```
+
+```{r, echo = FALSE, warning = FALSE}
+
+ table(data$PatientType, dnn = "Patient type")
+
+```
+
+```{r, echo = FALSE, warning = FALSE}
+
+   table(data$MaritalStatus, data$partner, 
+   			 dnn = c("Marital status", "Any partner"))
+
+```
+
+Folic acid 
+
+```{r, echo = FALSE, warning = FALSE}
+
+
+	table(data$Folicacidintake, data$Appropriatedose, 
+				dnn = c("Took folic acid", "Appropriate dose"))
+
+```
+
+Multivitamin
+
+```{r, echo = FALSE, warning = FALSE}
+
+  table(data$Multivitamin, dnn = "Multivitamin")
+
+```
+
+Smoking
+
+```{r, echo = FALSE, warning = FALSE}
+
+  table(data$Smoking, data$NoofCiggarettesperday,
+  			dnn = c("Smoking", "Number per day"), useNA = "always")
+  			
+
+```
+
+Drinking
+
+```{r, echo = FALSE, warning = FALSE}
+
+  table(data$Alcohol, data$Noofunitsweek, 
+  			dnn = c("Alcohol", "Units per week"))
+
+```
+
+Previous obsteric history
+
+```{r, echo = FALSE, warning = FALSE}
+
+  table(data$Previousrelaventobstetrichistory)
+  table(data$Previousrelaventobstetrichistory.1)
+
+```
+
+
+```{r, warning = FALSE}
+
+  	qplot(factor(data$Parity)) # Looks good
+
+# Gravida ###
+
+	table(data$Gravida)
+	qplot(factor(data$Gravida))
+
+	table(data$Parity, data$Gravida)
+
+# 4 observations in lower diagonal, where they should not be.
+
+# Fetal loss ####
+# Not sure if this is the best way to do this)
+
+	data$fetalLoss <- data$Gravida - data$Parity - 1
+
+	qplot(factor(data$fetalLoss))
+	table(factor(data$fetalLoss))
+
+# 4 with negative values - each of these 4 have a previous history of multiple
+# pregnancy (Historyofmultiplepregnancy = 1 (is that what this means?))
+
+	data[data$fetalLoss == -1, ]
+
+	table(data$Historyofmultiplepregnancy) # Not sure on coding here 0, 1, 2.
+
+	data[data$fetalLoss == 0 & data$Historyofmultiplepregnancy == 1, ]
+
+# 2 people, IDs 33 and 358   - Should these be coded to reflect a prior fetal loss TODO
+
+
+# Birth outcomes ##############################################################
+# Gestational age ####
+
+	table(data$Gestationatdelivery) # One with a zero TODO
+
+	table(data$Gestationalageatdeliveryday) # Why is this ever > 6? TODO
+
+	data$gestAge <- data$Gestationatdelivery + (data$Gestationalageatdeliveryday / 7)
+
+	summary(data$gestAge)
+	qplot(data$gestAge)
+
+# Normal vaginal delivery ####
+
+  table(data$NVD)
+
+# Induction ####
+
+  table(data$Induction)
+
+  table(data$NVD, data$Induction)
+
+# Operative delivery ####
+
+  table(data$Operativedelivery)
+
+  table(data$Operativedelivery, data$NVD) # 2 classified as NVD and Operative TODO
+
+  data[data$Operativedelivery >0 & data$NVD == 1, ]
+
+# Live Births ####
+
+  table(data$LiveInfant)
+
+
+```
+
+
